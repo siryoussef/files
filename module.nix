@@ -156,8 +156,6 @@
               name = "files/${path_}";
               value =
                 let
-                  # Could have been `cfg.gitToplevel + "/${path_}"`
-                  # but darwin seems to reject store paths with `.` in them.
                   file =
                     lib.pipe
                       [ cfg.gitToplevel "/" path_ ]
