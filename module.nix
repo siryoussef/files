@@ -55,7 +55,7 @@
                     }
                     {
                       path_ = ".gitignore";
-                      drv = pkgs.writeText ".gitignore" '''
+                      drv = pkgs.writeText "gitignore" '''
                         result
                       ''';
                     }
@@ -155,12 +155,24 @@
             {
               name = "files/${path_}";
               value =
-                pkgs.runCommand "check-file-${path_}"
+                let
+                  # Could have been `cfg.gitToplevel + "/${path_}"`
+                  # but darwin seems to reject store paths with `.` in them.
+                  file =
+                    lib.pipe
+                      [ cfg.gitToplevel "/" path_ ]
+                      [
+                        lib.concatStrings
+                        lib.readFile
+                        (pkgs.writeText "flake-files-file")
+                      ];
+                in
+                pkgs.runCommand "flake-file-check"
                   {
                     nativeBuildInputs = [ pkgs.difftastic ];
                   }
                   ''
-                    difft --exit-code --display inline ${drv} ${cfg.gitToplevel + "/${path_}"}
+                    difft --exit-code --display inline ${drv} ${file}
                     touch $out
                   '';
             }
